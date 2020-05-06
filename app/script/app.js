@@ -72,6 +72,25 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
 
           // RTはリツイートの情報を登録する。
           if (!data[item]["full_text"].indexOf("RT")) {
+            //
+            var u0 = {
+              uid: us["id_str"],
+              name: us["name"],
+              screen_name: us["screen_name"],
+              location: us["location"],
+              description: us["description"],
+              followers_count: us["followers_count"],
+              friends_count: us["friends_count"],
+              created_at: new Date(us["created_at"]),
+              observed_at: new Date(),
+              profile_image_url: us["profile_image_url_https"]
+            };
+            // upsert
+            model.User.updateOne({ uid: us["id_str"] }, u0, { upsert: true }, function (err) {
+              //if (err) console.log(err);
+            });
+
+            // RTはRT先のツイートに切り替え
             tw = data[item]["retweeted_status"];
             us = tw["user"];
           }
@@ -81,7 +100,7 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
             screen_name: us["screen_name"],
             location: us["location"],
             description: us["description"],
-            followeres_count: us["followeres_count"],
+            followers_count: us["followers_count"],
             friends_count: us["friends_count"],
             created_at: new Date(us["created_at"]),
             observed_at: new Date(),
