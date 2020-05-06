@@ -69,6 +69,8 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
         for (var item in data) {
           var tw = data[item];
           var us = data[item]["user"];
+
+          // RTはリツイートの情報を登録する。
           if (!data[item]["full_text"].indexOf("RT")) {
             tw = data[item]["retweeted_status"];
             us = tw["user"];
@@ -82,7 +84,7 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
             followeres_count: us["followeres_count"],
             friends_count: us["friends_count"],
             created_at: new Date(us["created_at"]),
-            obserbed_at: new Date(),
+            observed_at: new Date(),
             profile_image_url: us["profile_image_url_https"]
           };
 
@@ -94,7 +96,7 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
           var t1 = {
             id: tw["id_str"],
             created_at: new Date(tw["created_at"]),
-            obserbed_at: new Date(),
+            observed_at: new Date(),
             full_text: tw["full_text"],
             url: tw["entities"]["urls"]["expanded_url"],
             source: tw["source"],
