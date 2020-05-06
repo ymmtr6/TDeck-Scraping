@@ -2,19 +2,19 @@ var mongoose = require("mongoose")
 var Schema = mongoose.Schema;
 
 var Tweet = new Schema({
-    id: { type: Number, require: true, unique: true },
-    id_str: String,
+    id: { type: String, require: true, unique: true },
     created_at: { type: Date, default: Date.now },
+    observed_at: { type: Date, default: Date.now },
     full_text: String,
     url: String,
     source: String,
     uid: {
-        type: Number,
+        type: { type: String },
         ref: 'User'
     },
-    in_reply_to_status_id: Number,
-    in_reply_to_user_id: Number,
-    in_reply_to_screen_name: Number,
+    in_reply_to_status_id: { type: String },
+    in_reply_to_user_id: { type: String },
+    in_reply_to_screen_name: String,
     retweeted: Boolean,
     is_quote_status: Boolean,
     retweet_count: Number,
@@ -23,8 +23,7 @@ var Tweet = new Schema({
 });
 
 var User = new Schema({
-    uid: { type: Number, require: true, unique: true },
-    uid_str: String,
+    uid: { type: String, require: true, unique: true },
     name: String,
     screen_name: String,
     location: String,
@@ -32,6 +31,7 @@ var User = new Schema({
     url: String,
     followers_count: Number,
     created_at: { type: Date, default: Date.now },
+    observed_at: { type: Date, default: Date.now },
     friends_count: Number,
     profile_image_url: String
 });

@@ -47,7 +47,7 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
     }, 2000);
   });
 
-  await page.screenshot({ "path": "script/login.png" });
+  // await page.screenshot({ "path": "script/login.png" });
 
   var id = new BigNumber(0);
 
@@ -69,9 +69,12 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
         for (var item in data) {
           var tw = data[item];
           var us = data[item]["user"];
+          if (!data[item]["full_text"].indexOf("RT")) {
+            tw = data[item]["retweeted_status"];
+            us = tw["user"];
+          }
           var u1 = {
-            uid: us["id"],
-            id_str: us["id_str"],
+            uid: us["id_str"],
             name: us["name"],
             screen_name: us["screen_name"],
             location: us["location"],
@@ -83,20 +86,19 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
           };
 
           // upsert
-          model.User.updateOne({ uid: us["id"] }, u1, { upsert: true }, function (err) {
+          model.User.updateOne({ uid: us["id_str"] }, u1, { upsert: true }, function (err) {
             //if (err) console.log(err);
           });
 
           var t1 = {
-            id: tw["id"],
-            id_str: tw["id_str"],
+            id: tw["id_str"],
             created_at: new Date(tw["created_at"]),
             full_text: tw["full_text"],
             url: tw["entities"]["urls"]["expanded_url"],
             source: tw["source"],
-            uid: tw["user"]["id"],
-            in_reply_to_status_id: tw["in_reply_to_status_id"],
-            in_reply_to_user_id: tw["in_reply_to_user_id"],
+            uid: tw["user"]["id_str"],
+            in_reply_to_status_id: tw["in_reply_to_status_id_str"],
+            in_reply_to_user_id: tw["in_reply_to_user_id_str"],
             retweeted: tw["retweeted"],
             is_quote_status: tw["is_quote_status"],
             retweet_count: tw["retweet_count"],
@@ -104,7 +106,7 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
           };
 
           // upsert
-          model.Tweet.updateOne({ id: tw["id"] }, t1, { upsert: true }, function (err) {
+          model.Tweet.updateOne({ id: tw["id_str"] }, t1, { upsert: true }, function (err) {
             if (err) console.log(err);
           });
 

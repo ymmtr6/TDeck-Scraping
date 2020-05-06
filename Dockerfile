@@ -47,7 +47,7 @@ RUN apt-get update \
 # node関連設定
 WORKDIR /app 
 COPY     package.json /app
-COPY app/script/app.js /app/script/app.js
+COPY app/script/*.js /app/script/
 RUN npm install
 
 # スクリプト配置用ディレクトリ作成

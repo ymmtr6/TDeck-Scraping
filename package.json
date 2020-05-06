@@ -15,5 +15,5 @@
     "bignumber.js": "^8.0.1",
     "puppeteer": "^1.10.0",
     "mongoose": "^5.0.0"
-   }
+  }
 }
