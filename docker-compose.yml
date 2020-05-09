@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   tweet-scraping:
-    build: "."
+    image: ymmtr6/tdeck-scraping
     restart: always
     volumes:
       - "./app/script:/app/script"

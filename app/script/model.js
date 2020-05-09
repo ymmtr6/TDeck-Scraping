@@ -36,6 +36,39 @@ var Tweet = new Schema({
 
 });
 
+var Favorite = new Schema({
+    created_at: { type: Date, require: true },
+    observed_at: { type: Date, default: Date.now },
+    max_position: { type: String },
+    min_position: { type: String },
+    target_tweets: { type: [String], ref: 'Tweet' },
+    targets_sige: Number,
+    sources: { type: [String], ref: 'User' },
+    sources_size: Number,
+    from: { type: String, ref: "User" },
+    to: { type: String, ref: "Tweet" }
+});
+
+// 複数カラムをユニークに設定
+Favorite.index({ created_at: 1, from: 1, to: 1 }, { unique: true })
+
+var Follow = new Schema({
+    created_at: { type: Date, require: true },
+    observed_at: { type: Date, default: Date.now },
+    max_position: { type: String },
+    min_position: { type: String },
+    target_users: { type: [String], ref: 'User' },
+    targets_sige: Number,
+    sources: { type: [String], ref: 'User' },
+    sources_size: Number,
+    from: { type: String, ref: "User" },
+    to: { type: String, ref: "User" }
+});
+
+// 複数カラムをユニークにする。
+Follow.index({ created_at: 1, from: 1, to: 1 }, { unique: true })
 
 exports.Tweet = mongoose.model("Tweet", Tweet);
 exports.User = mongoose.model("User", User);
+exports.Favorite = mongoose.model("Favorite", Favorite);
+exports.Follow = mongoose.model("Follow", Follow);

@@ -20,8 +20,100 @@ mongoose.connect("mongodb://root:example@mongo:27017/tweetdeck?authSource=admin"
 
 let db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function () { console.log("mongoDB Coneected!"); });
+db.once('open', function () { console.log("mongoDB Connected!"); });
 
+function write_user(user) {
+  var u1 = {
+    uid: user["id_str"],
+    name: user["name"],
+    screen_name: user["screen_name"],
+    location: user["location"],
+    description: user["description"],
+    followers_count: user["followers_count"],
+    friends_count: user["friends_count"],
+    created_at: new Date(user["created_at"]),
+    observed_at: new Date(),
+    profile_image_url: user["profile_image_url_https"]
+  };
+
+  // upsert
+  model.User.updateOne({ uid: user["id_str"] }, u1, { upsert: true }, function (err) {
+    if (err) console.log(err);
+  });
+}
+
+function write_tweet(tweet) {
+  var t1 = {
+    id: tweet["id_str"],
+    created_at: new Date(tweet["created_at"]),
+    observed_at: new Date(),
+    full_text: tweet["full_text"],
+    url: tweet["entities"]["urls"]["expanded_url"],
+    source: tweet["source"],
+    uid: tweet["user"]["id_str"],
+    in_reply_to_status_id: tweet["in_reply_to_status_id_str"],
+    in_reply_to_user_id: tweet["in_reply_to_user_id_str"],
+    retweeted: tweet["retweeted"],
+    is_quote_status: tweet["is_quote_status"],
+    retweet_count: tweet["retweet_count"],
+    favorite_count: tweet["favorite_count"]
+  };
+
+  // upsert
+  model.Tweet.updateOne({ id: tweet["id_str"] }, t1, { upsert: true }, function (err) {
+    if (err) console.log(err);
+  });
+}
+
+function write_favorite(act) {
+  var action = act;
+  var from = action["sources"][0]["id_str"];
+  var to = action["targets"][0]["id_str"];
+  var created = new Date(action["created_at"]);
+  var fav = {
+    created_at: created,
+    observed_at: new Date(),
+    max_position: action["max_position"],
+    min_position: action["min_position"],
+    target_tweets: action["targets"].map(item => item["id_str"]),
+    targets_size: action["targets_size"],
+    sources: action["sources"].map(item => item["id_str"]),
+    sourcss_size: action["sources_size"],
+    from: from,
+    to: to,
+  };
+  write_user(action["sources"][0]);
+  model.Favorite.updateOne({ created_at: created, to: to, from: from }, fav, { upsert: true }, function (err) {
+    if (err) console.log(err);
+  });
+}
+
+function write_followed(fol) {
+  var from = fol["sources"][0]["id_str"];
+  var to = fol["targets"][0]["id_str"];
+  var created = new Date(fol["created_at"]);
+  var follow = {
+    created_at: created,
+    observed_at: new Date(),
+    max_position: fol["max_position"],
+    min_position: fol["min_position"],
+    target_users: fol["targets"].map(item => item["id_str"]),
+    targets_size: fol["targets_size"],
+    sources: fol["sources"].map(item => item["id_str"]),
+    sources_size: fol["sources_size"],
+    from: from,
+    to: to
+  };
+  fol["sources"].forEach(function (item) {
+    write_user(item);
+  });
+  fol["targets"].forEach(function (item) {
+    write_user(item);
+  });
+  model.Follow.updateOne({ created_at: created, to: to, from: from }, follow, { upsert: true }, function (err) {
+    if (err) console.log(err);
+  });
+}
 
 (async () => {
   // puppeteer の起動
@@ -63,7 +155,6 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
       // console.log("tweet received");
       const data = await res.json();
       // あとはこの JSON を煮るなり焼くなりするだけ
-      // ぼくは Slack の Incoming Webhook に送り付けて Twitter IRC Gateway みたいな環境を再現しています
       //data_wo_syori_suru_nanrakano_funcion(data);
       if (url.match(/home_timeline.json/)) {
         for (var item in data) {
@@ -73,79 +164,34 @@ db.once('open', function () { console.log("mongoDB Coneected!"); });
           // RTはリツイートの情報を登録する。
           if (!data[item]["full_text"].indexOf("RT")) {
             //
-            var u0 = {
-              uid: us["id_str"],
-              name: us["name"],
-              screen_name: us["screen_name"],
-              location: us["location"],
-              description: us["description"],
-              followers_count: us["followers_count"],
-              friends_count: us["friends_count"],
-              created_at: new Date(us["created_at"]),
-              observed_at: new Date(),
-              profile_image_url: us["profile_image_url_https"]
-            };
-            // upsert
-            model.User.updateOne({ uid: us["id_str"] }, u0, { upsert: true }, function (err) {
-              //if (err) console.log(err);
-            });
+            write_user(us);
 
             // RTはRT先のツイートに切り替え
             tw = data[item]["retweeted_status"];
             us = tw["user"];
           }
-          var u1 = {
-            uid: us["id_str"],
-            name: us["name"],
-            screen_name: us["screen_name"],
-            location: us["location"],
-            description: us["description"],
-            followers_count: us["followers_count"],
-            friends_count: us["friends_count"],
-            created_at: new Date(us["created_at"]),
-            observed_at: new Date(),
-            profile_image_url: us["profile_image_url_https"]
-          };
-
-          // upsert
-          model.User.updateOne({ uid: us["id_str"] }, u1, { upsert: true }, function (err) {
-            //if (err) console.log(err);
-          });
-
-          var t1 = {
-            id: tw["id_str"],
-            created_at: new Date(tw["created_at"]),
-            observed_at: new Date(),
-            full_text: tw["full_text"],
-            url: tw["entities"]["urls"]["expanded_url"],
-            source: tw["source"],
-            uid: tw["user"]["id_str"],
-            in_reply_to_status_id: tw["in_reply_to_status_id_str"],
-            in_reply_to_user_id: tw["in_reply_to_user_id_str"],
-            retweeted: tw["retweeted"],
-            is_quote_status: tw["is_quote_status"],
-            retweet_count: tw["retweet_count"],
-            favorite_count: tw["favorite_count"]
-          };
-
-          // upsert
-          model.Tweet.updateOne({ id: tw["id_str"] }, t1, { upsert: true }, function (err) {
-            if (err) console.log(err);
-          });
-
-
+          write_user(us);
+          write_tweet(tw);
         }
       } else if (url.match(/by_friends.json/)) {
         for (var item in data) {
-          // console.log(data[item]);
-          //console.log("[Activity]" + data[item]["targets"][0]["full_text"]);
-          // console.log("[Activity]" + data);
+          //console.log(data[item]);
+          if (data[item]["action"] == "favorite") {
+            // favorite
+            write_favorite(data[item]);
+          } else if (data[item]["action"] == 'follow') {
+            write_followed(data[item]);
+          } else {
+            console.log(data[item]);
+          }
         }
+      } else {
+        console.log(url);
       }
     } catch (e) {
       console.log(url);
       console.log(e);
-      console.log(await res.text());
+      //console.log(await res.text());
     }
   });
 
