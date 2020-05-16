@@ -42,6 +42,30 @@ function write_user(user) {
   });
 }
 
+function write_keyword_tweet(tweet, keyword) {
+  var t1 = {
+    id: tweet["id_str"],
+    created_at: new Date(tweet["created_at"]),
+    observed_at: new Date(),
+    full_text: tweet["full_text"],
+    url: tweet["entities"]["urls"]["expanded_url"],
+    source: tweet["source"],
+    uid: tweet["user"]["id_str"],
+    in_reply_to_status_id: tweet["in_reply_to_status_id_str"],
+    in_reply_to_user_id: tweet["in_reply_to_user_id_str"],
+    retweeted: tweet["retweeted"],
+    is_quote_status: tweet["is_quote_status"],
+    retweet_count: tweet["retweet_count"],
+    favorite_count: tweet["favorite_count"],
+    keyword=keyword
+  };
+
+  // upsert
+  model.Tweet.updateOne({ id: tweet["id_str"] }, t1, { upsert: true }, function (err) {
+    if (err) console.log(err);
+  });
+}
+
 function write_tweet(tweet) {
   var t1 = {
     id: tweet["id_str"],
@@ -113,6 +137,16 @@ function write_followed(fol) {
   model.Follow.updateOne({ created_at: created, to: to, from: from }, follow, { upsert: true }, function (err) {
     if (err) console.log(err);
   });
+}
+
+function parseURL(url) {
+  var param = [];
+  p = url.split("?")[1].split("&");
+  for (var i = 0; i < p.length; i++) {
+    key = p.split("=");
+    param[key[0]] = key[1];
+  }
+  return param;
 }
 
 (async () => {
@@ -190,9 +224,11 @@ function write_followed(fol) {
         }
       } else if (url.match(/universal.json/)) {
         console.log(url);
+        var keyword = decodeURI(parseURL(url)["q"]).replace(/\s+/g, "");
+        keyword = keyword.slice(0, keyword.indexOf("since_id"));
         for (var item in data["modules"]) {
           tw = data["modules"][item]["status"]["data"];
-          write_tweet(tw);
+          write_keyword_tweet(tw, keyword);
           write_user(tw["user"]);
         }
       } else {
