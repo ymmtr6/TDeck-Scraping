@@ -33,7 +33,7 @@ var Tweet = new Schema({
     is_quote_status: Boolean,
     retweet_count: Number,
     favorite_count: Number,
-
+    keyword: String
 });
 
 var Favorite = new Schema({

@@ -143,7 +143,7 @@ function parseURL(url) {
   var param = [];
   p = url.split("?")[1].split("&");
   for (var i = 0; i < p.length; i++) {
-    key = p.split("=");
+    key = p[i].split("=");
     param[key[0]] = key[1];
   }
   return param;
@@ -223,9 +223,9 @@ function parseURL(url) {
           }
         }
       } else if (url.match(/universal.json/)) {
-        console.log(url);
         var keyword = decodeURI(parseURL(url)["q"]).replace(/\s+/g, "");
         keyword = keyword.slice(0, keyword.indexOf("since_id"));
+        console.log(keyword);
         for (var item in data["modules"]) {
           tw = data["modules"][item]["status"]["data"];
           write_keyword_tweet(tw, keyword);
