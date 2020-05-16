@@ -57,7 +57,7 @@ function write_keyword_tweet(tweet, keyword) {
     is_quote_status: tweet["is_quote_status"],
     retweet_count: tweet["retweet_count"],
     favorite_count: tweet["favorite_count"],
-    keyword=keyword
+    keyword: keyword
   };
 
   // upsert
