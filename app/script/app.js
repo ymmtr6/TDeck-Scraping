@@ -147,8 +147,11 @@ function write_followed(fol) {
     const url = res.url();
 
     // home timeline だけ処理するようにします
-    if (!url.match(/api\.twitter\.com/)) { return }
-    if (!url.match(/home_timeline.json/) && !url.match(/by_friends.json/)) { return }
+    // if (!url.match(/api\.twitter\.com/)) { return }
+    if (!url.match(/home_timeline.json/)
+      && !url.match(/by_friends.json/)
+      && !url.match(/universal.json/)
+    ) { return }
     if ((await res.text()) === "") { return true }
 
     try {
@@ -184,6 +187,13 @@ function write_followed(fol) {
           } else {
             console.log(data[item]);
           }
+        }
+      } else if (url.match(/universal.json/)) {
+        console.log(url);
+        for (var item in data["modules"]) {
+          tw = data["modules"][item]["status"]["data"];
+          write_tweet(tw);
+          write_user(tw["user"]);
         }
       } else {
         console.log(url);
