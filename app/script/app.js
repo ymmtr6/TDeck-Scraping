@@ -225,7 +225,7 @@ function parseURL(url) {
       } else if (url.match(/universal.json/)) {
         var keyword = decodeURI(parseURL(url)["q"]).replace(/\s+/g, "");
         keyword = keyword.slice(0, keyword.indexOf("since_id"));
-        console.log(keyword);
+        // console.log(keyword);
         for (var item in data["modules"]) {
           tw = data["modules"][item]["status"]["data"];
           write_keyword_tweet(tw, keyword);
