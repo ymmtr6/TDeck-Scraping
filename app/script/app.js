@@ -224,6 +224,7 @@ function parseURL(url) {
         }
       } else if (url.match(/universal.json/)) {
         var keyword = decodeURI(parseURL(url)["q"]).replace(/\s+/g, "");
+        // ReferenceError: keyword is not defind.
         keyword = keyword.slice(0, keyword.indexOf("since_id"));
         // console.log(keyword);
         for (var item in data["modules"]) {
