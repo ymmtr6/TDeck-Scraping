@@ -153,7 +153,7 @@ function parseURL(url) {
   // puppeteer の起動
   // これを書いている人は Docker で起動しているので root ユーザーでの実行となるのでそのためにいくつか設定をしている
   // 一般ユーザー権限で実行する場合は no-sandbox とかは不要
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] });
   const page = await browser.newPage();
 
   for (let cookie of cookies) {
